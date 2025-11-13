@@ -4,13 +4,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from datetime import datetime
 
+from core.database import connect_to_mongo, close_mongo_connection
+from routers import auth_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    
+    # Connect to MongoDB on startup
+    await connect_to_mongo()
     yield
+    # Close MongoDB connection on shutdown
+    await close_mongo_connection()
     
+
 
 app = FastAPI(
     title="EduNeuro - ",
@@ -21,6 +27,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+#cors
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*","localhost:3000"],  # Configure appropriately for production
@@ -30,7 +37,7 @@ app.add_middleware(
 )
 
 # Include routers
-#app.include_router(auth.router)
+app.include_router(auth_router)
 #app.include_router(users.router)
 #app.include_router(analysis_router)
 #app.include_router(monitoring.router)
