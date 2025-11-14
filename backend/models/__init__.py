@@ -1,4 +1,4 @@
-from .user import User, PyObjectId
+from .user import User
 
 __all__ = ["User", "PyObjectId"]
 

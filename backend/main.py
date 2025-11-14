@@ -1,20 +1,18 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from datetime import datetime
+from pathlib import Path
 
-from core.database import connect_to_mongo, close_mongo_connection
-from routers import auth_router
+from routers import auth_router, tts_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Connect to MongoDB on startup
-    await connect_to_mongo()
+    # Using in-memory dictionaries for storage - no database connection needed
     yield
-    # Close MongoDB connection on shutdown
-    await close_mongo_connection()
     
 
 
@@ -30,7 +28,7 @@ app = FastAPI(
 #cors
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*","localhost:3000"],  # Configure appropriately for production
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # Configure appropriately for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -38,10 +36,16 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router)
+app.include_router(tts_router)
 #app.include_router(users.router)
 #app.include_router(analysis_router)
 #app.include_router(monitoring.router)
 #app.include_router(mitre.router)
+
+# Mount static files for serving audio files
+static_dir = Path("static")
+static_dir.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_model=dict)
 async def root():

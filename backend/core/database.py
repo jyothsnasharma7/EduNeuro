@@ -19,8 +19,10 @@ async def connect_to_mongo():
         await database.client.admin.command('ping')
         logger.info(f"Connected to MongoDB - Database: {settings.DATABASE_NAME}")
     except Exception as e:
-        logger.error(f"Error connecting to MongoDB: {e}")
-        raise
+        logger.warning(f"Warning: Could not connect to MongoDB: {e}")
+        logger.warning("Server will continue without database connection. Auth endpoints will not work.")
+        # Don't raise - allow server to start without MongoDB
+        # This is useful for development and endpoints that don't require DB (like TTS)
 
 async def close_mongo_connection():
     """Close database connection"""
